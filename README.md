@@ -5,6 +5,7 @@
 
 #### 2018-12
 - [[Google]本地调试Google Sign-In的方法](./2018-12/本地调试Google-Sign-In.md)
+- [[Nuxt]Nuxt中的路由权限判断](./2018-12/Nuxt中的路由权限判断.md)
 
 #### 2018-11
 - [[Vue]开发Vue SPA 单页应用时，使用prerender-spa-plugin与vue-i18n遇到的问题](./2018-11/prerender-spa-plugin与vue-i18n.md)
