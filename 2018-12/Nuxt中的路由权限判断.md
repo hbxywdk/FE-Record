@@ -83,3 +83,5 @@ export default function ({ isHMR, app, store, req, route, params, error, redirec
 middleware: 'accountVerification'
 ```
 该中间件就应用到对应的页面上了。
+
+附：[官方给出的权限判断demo](https://github.com/nuxt/example-auth0)
