@@ -15,6 +15,11 @@ const obj = Object.assign({}, this.obj)
 obj.item.img = ''
 this.obj = obj
 ```
+- 使用 vm.$forceUpdate()
+```
+vm.$forceUpdate()会使 Vue 实例重新渲染。但它仅仅影响实例本身和插入插槽内容的子组件，而不是所有子组件。
+
+```
 #### 通常来说使用以上几种方式，就可以解决问题，但如果任然无法解决，还有另外一种方式，强行使Vue触发Vue更新：
 ```
 // 在data中定义一个数据
