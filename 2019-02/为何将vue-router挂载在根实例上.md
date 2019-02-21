@@ -1,4 +1,4 @@
-##### (未完成)
+##### (未完)
 在Vue根实例中以参数传入router，Vue会把router添加到this.$options,  
 在vue-router的install的函数中，有一个Vue.mixin, 当 beforeCreate 触发的时候,  
 如果 this.$options.router 存在, 就会注入一个 this._router 的变量
