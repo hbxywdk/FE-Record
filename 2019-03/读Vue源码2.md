@@ -61,7 +61,7 @@
     if (Sub.options.props) {
       initProps(Sub)
     }
-    
+
     // 配置有computed，初始化computed
     if (Sub.options.computed) {
       initComputed(Sub)
@@ -97,7 +97,3 @@
     return Sub
   }
 ```
-
-### 直接导出Vue函数 src/core/instance/index.js
-
-### init src/core/instance/init.js

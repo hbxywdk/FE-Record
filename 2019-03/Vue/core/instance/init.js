@@ -31,6 +31,7 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed
     vm._isVue = true
     
+    // 😀参数的处理
     // merge options
     if (options && options._isComponent) {
       // optimize internal component instantiation
@@ -38,7 +39,7 @@ export function initMixin (Vue: Class<Component>) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options)
     } else {
-      // 合并配置项
+      // 合并配置options
       vm.$options = mergeOptions(
         // 解析构造函数配置
         resolveConstructorOptions(vm.constructor),
@@ -54,13 +55,20 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
+
+    // 😀初始化生命周期
     initLifecycle(vm)
+    // 😀️初始化事件
     initEvents(vm)
+    // 😀初始化Render
     initRender(vm)
+    // 😀触发beforeCreate钩子
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
+    // 😀State初始化，prop/data/computed/method/watch都在这里完成初始化，是Vue实例create的关键
     initState(vm)
     initProvide(vm) // resolve provide after data/props
+    // 😀触发created钩子
     callHook(vm, 'created')
 
     /* istanbul ignore if */
@@ -70,6 +78,7 @@ export function initMixin (Vue: Class<Component>) {
       measure(`vue ${vm._name} init`, startTag, endTag)
     }
 
+    // 😀如果Options参数中传入了el，直接在DOM上挂载，如果没传则需要手动挂载
     if (vm.$options.el) {
       vm.$mount(vm.$options.el)
     }
