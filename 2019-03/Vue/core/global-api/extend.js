@@ -36,7 +36,7 @@ export function initExtend (Vue: GlobalAPI) {
       validateComponentName(name)
     }
 
-    // 定义一个Sub函数，继承于Vue，然后返回
+    // 定义一个Sub函数，继承Vue，然后返回
     const Sub = function VueComponent (options) {
       this._init(options)
     }
@@ -54,37 +54,48 @@ export function initExtend (Vue: GlobalAPI) {
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
+
+    // 配置有props，初始化props
     if (Sub.options.props) {
       initProps(Sub)
     }
+    // 配置有computed，初始化computed
     if (Sub.options.computed) {
       initComputed(Sub)
     }
 
+    // 允许进一步使用 extension/mixin/plugin
     // allow further extension/mixin/plugin usage
     Sub.extend = Super.extend
     Sub.mixin = Super.mixin
     Sub.use = Super.use
+
 
     // create asset registers, so extended classes
     // can have their private assets too.
     ASSET_TYPES.forEach(function (type) {
       Sub[type] = Super[type]
     })
+
+    // 开启递归自查找
     // enable recursive self-lookup
     if (name) {
       Sub.options.components[name] = Sub
     }
 
+    // 在扩展时保留对超类的配置项引用
+    // 在之后的实例化时，我们可以检查超类的配置项是否已更新
     // keep a reference to the super options at extension time.
-    // later at instantiation we can check if Super's options have
-    // been updated.
+    // later at instantiation we can check if Super's options have been updated.
     Sub.superOptions = Super.options
     Sub.extendOptions = extendOptions
     Sub.sealedOptions = extend({}, Sub.options)
 
+    // 缓存构造函数
     // cache constructor
     cachedCtors[SuperId] = Sub
+
+    // 返回Sub
     return Sub
   }
 }
