@@ -101,7 +101,7 @@
   // 模拟解析到模版 <div>{{name}}</div> 触发new Watcher()
   new Watcher(data, 'name', update)
   
-  // 模拟解析到模版 <div>{{name}}</div> 触发new Watcher()
+  // 模拟解析到模版 <div>{{age}}</div> 触发new Watcher()
   new Watcher(data, 'age', update)
 
   // get数据
