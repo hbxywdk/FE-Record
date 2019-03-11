@@ -32,6 +32,7 @@ export function setActiveInstance(vm: Component) {
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
+  // 找到第一个非抽象父级
   // locate first non-abstract parent
   let parent = options.parent
   if (parent && !options.abstract) {

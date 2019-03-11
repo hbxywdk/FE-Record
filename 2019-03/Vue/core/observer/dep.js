@@ -7,6 +7,7 @@ import config from '../config'
 let uid = 0
 
 /**
+ * Dep是一个可观察的，可以有多个指令订阅它
  * A dep is an observable that can have multiple
  * directives subscribing to it.
  */
@@ -17,13 +18,15 @@ export default class Dep {
 
   constructor () {
     this.id = uid++
-    this.subs = []
+    this.subs = [] // 订阅者List
   }
 
+  // 添加订阅者
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
 
+  // 移除订阅者
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
@@ -34,6 +37,7 @@ export default class Dep {
     }
   }
 
+  // 通知
   notify () {
     // stabilize the subscriber list first
     const subs = this.subs.slice()

@@ -4,9 +4,9 @@ import Dep from './dep'
 import VNode from '../vdom/vnode'
 import { arrayMethods } from './array'
 import {
-  def,
+  def, // 使用Object.defineProperty定义一个属性
   warn,
-  hasOwn,
+  hasOwn, // 是否有某个属性
   hasProto,
   isObject,
   isPlainObject,
@@ -29,6 +29,8 @@ export function toggleObserving (value: boolean) {
 }
 
 /**
+ * Observer类附加到每个观察到的对象。 
+ * 一旦附加，观察者就会转换目标对象的属性键进入getter/setter收集依赖关系并发送更新。
  * Observer class that is attached to each observed
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
@@ -43,7 +45,10 @@ export class Observer {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
+
+    // 给value定义'__ob__'属性，值为this
     def(value, '__ob__', this)
+
     if (Array.isArray(value)) {
       if (hasProto) {
         protoAugment(value, arrayMethods)
@@ -54,6 +59,7 @@ export class Observer {
     } else {
       this.walk(value)
     }
+    
   }
 
   /**

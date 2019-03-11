@@ -48,14 +48,20 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
+  // 处理props
   if (opts.props) initProps(vm, opts.props)
+  // 处理methods，然后将每一个方法绑定在vm上，故可以以this.methodName()来调用methods{}中的方法
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
+    // 存在data处理data
     initData(vm)
   } else {
+    // 不存在data默认data为{}
     observe(vm._data = {}, true /* asRootData */)
   }
+  // 处理computed
   if (opts.computed) initComputed(vm, opts.computed)
+  // 处理watch
   if (opts.watch && opts.watch !== nativeWatch) {
     initWatch(vm, opts.watch)
   }

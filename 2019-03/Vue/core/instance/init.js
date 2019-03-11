@@ -47,10 +47,13 @@ export function initMixin (Vue: Class<Component>) {
         vm
       )
     }
+
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
+      // Vue在开发环境使用了Proxy新API
       initProxy(vm)
     } else {
+      // 让vm._renderProxy = this
       vm._renderProxy = vm
     }
     // expose real self
@@ -58,16 +61,27 @@ export function initMixin (Vue: Class<Component>) {
 
     // 😀初始化生命周期
     initLifecycle(vm)
+
     // 😀️初始化事件
     initEvents(vm)
+
     // 😀初始化Render
     initRender(vm)
+
     // 😀触发beforeCreate钩子
     callHook(vm, 'beforeCreate')
-    initInjections(vm) // resolve injections before data/props
+
+    // 在data/props之前初始化注入
+    // resolve injections before data/props
+    initInjections(vm)
+
     // 😀State初始化，prop/data/computed/method/watch都在这里完成初始化，是Vue实例create的关键
     initState(vm)
-    initProvide(vm) // resolve provide after data/props
+
+    // 在data/props之后初始化provide
+    // resolve provide after data/props
+    initProvide(vm) 
+    
     // 😀触发created钩子
     callHook(vm, 'created')
 
@@ -109,9 +123,9 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
   let options = Ctor.options
   // 是否是Vue的子类
   if (Ctor.super) {
-    const superOptions = resolveConstructorOptions(Ctor.super)
-    const cachedSuperOptions = Ctor.superOptions
-    if (superOptions !== cachedSuperOptions) {
+    const superOptions = resolveConstructorOptions(Ctor.super) // 找到超类的Options
+    const cachedSuperOptions = Ctor.superOptions // 
+    if (superOptions !== cachedSuperOptions) { // 对比父类中的options 有没有发生变化
       // super(Vue)的Options配置若改变，处理新的Options
       // super option changed,
       // need to resolve new options.
@@ -128,7 +142,7 @@ export function resolveConstructorOptions (Ctor: Class<Component>) {
       }
     }
   }
-  // 非Vue子类直接返回
+  // 返回获merge自己的options与父类的options属性
   return options
 }
 
