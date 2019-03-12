@@ -3,6 +3,8 @@
  * dynamically accessing methods on Array prototype
  */
 
+// Object.defineProperty不能监听数组的变化，这里是对数组操作的hack处理
+
 import { def } from '../util/index'
 
 const arrayProto = Array.prototype
