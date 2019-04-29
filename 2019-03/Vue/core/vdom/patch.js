@@ -32,6 +32,14 @@ export const emptyNode = new VNode('', {}, [])
 
 const hooks = ['create', 'activate', 'update', 'remove', 'destroy']
 
+/**
+ * 判断是否是同一个Vnode
+ * 1.key必须相同
+ * 2.tag必须相同
+ * 3.是否是注释节点（isComment）相同
+ * 4.是否有data属性
+ * 5.如果都是input的话type必须相同
+ */
 function sameVnode (a, b) {
   return (
     a.key === b.key && (
@@ -415,6 +423,8 @@ export function createPatchFunction (backend) {
     // removeOnly is a special flag used only by <transition-group>
     // to ensure removed elements stay in correct relative positions
     // during leaving transitions
+    // removeOnly是一个用于<transition-group>的特殊的flag
+    // 以保证移除有过渡效果的的元素时保持它正确的定位
     const canMove = !removeOnly
 
     if (process.env.NODE_ENV !== 'production') {
@@ -422,36 +432,59 @@ export function createPatchFunction (backend) {
     }
 
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
+
+      // oldStartVnode不存在，则将oldStartVnode赋值为下一个vnode
       if (isUndef(oldStartVnode)) {
         oldStartVnode = oldCh[++oldStartIdx] // Vnode has been moved left
+
+      // oldEndVnode不存在则将oldEndVnode赋值为上一个vnode
       } else if (isUndef(oldEndVnode)) {
         oldEndVnode = oldCh[--oldEndIdx]
+
+      // 如果oldStartVnode, newStartVnode为同一个vnode，直接去patchVnode（打补丁）
+      // 然后，新旧startVnode各向前前进一格
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
         patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
         oldStartVnode = oldCh[++oldStartIdx]
         newStartVnode = newCh[++newStartIdx]
+
+      // 如果oldEndVnode, newEndVnode为同一个vnode，直接去patchVnode（打补丁）
+      // 然后，新旧endVnode各向后后退一格
       } else if (sameVnode(oldEndVnode, newEndVnode)) {
         patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
         oldEndVnode = oldCh[--oldEndIdx]
         newEndVnode = newCh[--newEndIdx]
+
+      // 如果oldStartVnode, newEndVnode为同一个vnode（vnode被移动到右边去了）
+      // oldStartVnode前进一格
+      // newEndVnode后退一格
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
         patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue, newCh, newEndIdx)
         canMove && nodeOps.insertBefore(parentElm, oldStartVnode.elm, nodeOps.nextSibling(oldEndVnode.elm))
         oldStartVnode = oldCh[++oldStartIdx]
         newEndVnode = newCh[--newEndIdx]
+
+      // 如果oldEndVnode, newStartVnode是同一个vnode，说明vnode被移到左边去了
+      // newStartVnode前进一格
+      // oldEndVnode后退一格
       } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
         patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
         canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm)
         oldEndVnode = oldCh[--oldEndIdx]
         newStartVnode = newCh[++newStartIdx]
+
+      // 最后，所有的对比不上
       } else {
+
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx)
-        idxInOld = isDef(newStartVnode.key)
-          ? oldKeyToIdx[newStartVnode.key]
-          : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
-        if (isUndef(idxInOld)) { // New element
+        // 创建了一个哈希表，其存放的内容是old vnode的key
+        idxInOld = isDef(newStartVnode.key) ? oldKeyToIdx[newStartVnode.key] : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx)
+        // old vnode的哈希表中找不到，则说明是新元素啊，这里就新建一个元素
+        if (isUndef(idxInOld)) { // New element 新加进来的元素
           createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
+        // else 就是找到啦，
         } else {
+          // 这个就是我们找到的和 newVnode的startIndex 索引相同的 oldVnode，我们要把它移到当前的oldStartVnode的前面去
           vnodeToMove = oldCh[idxInOld]
           if (sameVnode(vnodeToMove, newStartVnode)) {
             patchVnode(vnodeToMove, newStartVnode, insertedVnodeQueue, newCh, newStartIdx)
@@ -459,15 +492,22 @@ export function createPatchFunction (backend) {
             canMove && nodeOps.insertBefore(parentElm, vnodeToMove.elm, oldStartVnode.elm)
           } else {
             // same key but different element. treat as new element
+            // 不过呢，万一key相同，但是通过sameVnode方法比较出来的结果是不相同，则new一个元素，插到当前的oldStartVnode的前面去
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx)
           }
         }
         newStartVnode = newCh[++newStartIdx]
       }
     }
+    // 这里就循环完毕啦
+    // 但是如果这里发现 oldStartIdx > oldEndIdx 说明，有新增的元素啊
+    // 我们把它们选出来，用refElm存一下，然后啊，使用addVnodes批量调用创建（createElm）把这些vnode加到真实DOM中
     if (oldStartIdx > oldEndIdx) {
       refElm = isUndef(newCh[newEndIdx + 1]) ? null : newCh[newEndIdx + 1].elm
       addVnodes(parentElm, refElm, newCh, newStartIdx, newEndIdx, insertedVnodeQueue)
+    // else呢，说明新的vnodes比老的少啊
+    // 我们调用removeVnodes方法，参数包含oldStartIdx 与 oldEndIdx，把不要的删掉嘛
+    // emmmm......😂😂😂😂😂😂😂 先到这把
     } else if (newStartIdx > newEndIdx) {
       removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx)
     }
@@ -696,8 +736,9 @@ export function createPatchFunction (backend) {
       return node.nodeType === (vnode.isComment ? 8 : 3)
     }
   }
-
+  //  新旧vnode对比
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
+    // vnode不存在则调用oldVnode的销毁钩子
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -705,13 +746,14 @@ export function createPatchFunction (backend) {
 
     let isInitialPatch = false
     const insertedVnodeQueue = []
-
+    // 如果oldVnode不存在的话，就新建一个根节点
     if (isUndef(oldVnode)) {
       // empty mount (likely as component), create new root element
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
-      const isRealElement = isDef(oldVnode.nodeType)
+      const isRealElement = isDef(oldVnode.nodeType) // oldVnode是否是一个真的节点，存在nodeType属性
+      // 是同一个节点，就开始修补现有节点
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // patch existing root node
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
@@ -720,7 +762,9 @@ export function createPatchFunction (backend) {
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // 如果oldVnode的是一个Element节点 && 存在服务端渲染的属性
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
+            // 则移除其SSR属性，再将hydrating设置为true
             oldVnode.removeAttribute(SSR_ATTR)
             hydrating = true
           }

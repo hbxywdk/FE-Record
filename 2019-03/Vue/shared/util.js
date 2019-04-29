@@ -4,24 +4,26 @@ export const emptyObject = Object.freeze({})
 
 // These helpers produce better VM code in JS engines due to their
 // explicitness and function inlining.
+// 是否为空
 export function isUndef (v: any): boolean %checks {
   return v === undefined || v === null
 }
-
+// 是否不为空
 export function isDef (v: any): boolean %checks {
   return v !== undefined && v !== null
 }
-
+// 是否为true
 export function isTrue (v: any): boolean %checks {
   return v === true
 }
-
+// 是否为false
 export function isFalse (v: any): boolean %checks {
   return v === false
 }
 
 /**
  * Check if value is primitive.
+ * 检查value是不是原生类型
  */
 export function isPrimitive (value: any): boolean %checks {
   return (
@@ -37,6 +39,7 @@ export function isPrimitive (value: any): boolean %checks {
  * Quick object check - this is primarily used to tell
  * Objects from primitive values when we know the value
  * is a JSON-compliant type.
+ * 快速检查obj是不是一个对象
  */
 export function isObject (obj: mixed): boolean %checks {
   return obj !== null && typeof obj === 'object'
@@ -46,7 +49,7 @@ export function isObject (obj: mixed): boolean %checks {
  * Get the raw type string of a value, e.g., [object Object].
  */
 const _toString = Object.prototype.toString
-
+// 获取value的类型，去除左右不需要的部分只保留[[Class]]值
 export function toRawType (value: any): string {
   return _toString.call(value).slice(8, -1)
 }
@@ -54,11 +57,13 @@ export function toRawType (value: any): string {
 /**
  * Strict object type check. Only returns true
  * for plain JavaScript objects.
+ * 严格检查是不是一个对象类型
  */
 export function isPlainObject (obj: any): boolean {
   return _toString.call(obj) === '[object Object]'
 }
 
+// 是不是正则类型
 export function isRegExp (v: any): boolean {
   return _toString.call(v) === '[object RegExp]'
 }
@@ -81,6 +86,7 @@ export function isPromise (val: any): boolean {
 
 /**
  * Convert a value to a string that is actually rendered.
+ * val转字符串
  */
 export function toString (val: any): string {
   return val == null
