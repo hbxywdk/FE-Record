@@ -1,5 +1,5 @@
 ## FE-Record
-不定时更新，记录一些前端网页开发中的东西。 
+此处停止更新，转移到 https://hbxywdk.github.io/ 
 
 #### 2019-03
 - [[Nuxt]Nuxt的plugins中的异步操作](./2019-03/Nuxt的plugins中的异步操作.md)
