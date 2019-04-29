@@ -7,11 +7,12 @@ import { isIE, isIOS, isNative } from './env'
 
 export let isUsingMicroTask = false
 
-// 回调函数List
+// 用于存放要执行的callback lists
 const callbacks = []
+// 状态flag
 let pending = false
 
-// 执行所有回调函数
+// 这个函数会将所有点饿callback拿出来执行
 function flushCallbacks () {
   pending = false
   const copies = callbacks.slice(0)
@@ -32,6 +33,7 @@ function flushCallbacks () {
 // where microtasks have too high a priority and fire in between supposedly
 // sequential events (e.g. #4521, #6690, which have workarounds)
 // or even between bubbling of the same event (#6566).
+// 定义一个定时器方法变量，在下面的代码中会根据运行环境的不同赋予其不同的值
 let timerFunc
 
 // The nextTick behavior leverages the microtask queue, which can be accessed
@@ -42,6 +44,7 @@ let timerFunc
 // Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  // 1.优先使用 Promise
   const p = Promise.resolve()
   timerFunc = () => {
     p.then(flushCallbacks)
@@ -61,6 +64,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   // Use MutationObserver where native Promise is not available,
   // e.g. PhantomJS, iOS7, Android 4.4
   // (#6466 MutationObserver is unreliable in IE11)
+  // 2.次选方案 MutationObserver，其提供了监视对DOM树所做更改的能力
   let counter = 1
   const observer = new MutationObserver(flushCallbacks)
   const textNode = document.createTextNode(String(counter))
@@ -76,11 +80,13 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   // Fallback to setImmediate.
   // Techinically it leverages the (macro) task queue,
   // but it is still a better choice than setTimeout.
+  // 3.降级方案 setImmediate，其优于 setTimeout
   timerFunc = () => {
     setImmediate(flushCallbacks)
   }
 } else {
   // Fallback to setTimeout.
+  // 4.如果以上都不支持，则最终会使用 setTimeout
   timerFunc = () => {
     setTimeout(flushCallbacks, 0)
   }
@@ -88,6 +94,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
+  
   callbacks.push(() => {
     if (cb) {
       try {
@@ -99,6 +106,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+  // pending为false就直接执行timerFunc
   if (!pending) {
     pending = true
     timerFunc()
