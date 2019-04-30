@@ -214,7 +214,7 @@ export function createPatchFunction (backend) {
       insert(parentElm, vnode.elm, refElm)
     }
   }
-
+  // ----
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
     if (isDef(i)) {
@@ -410,14 +410,22 @@ export function createPatchFunction (backend) {
   }
 
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
-    let oldStartIdx = 0
-    let newStartIdx = 0
-    let oldEndIdx = oldCh.length - 1
-    let oldStartVnode = oldCh[0]
-    let oldEndVnode = oldCh[oldEndIdx]
-    let newEndIdx = newCh.length - 1
-    let newStartVnode = newCh[0]
-    let newEndVnode = newCh[newEndIdx]
+    let oldStartIdx = 0 // 旧list起始索引
+    let newStartIdx = 0 // 新list起始索引
+    let oldEndIdx = oldCh.length - 1 // 旧list结尾索引
+    let oldStartVnode = oldCh[0] // 旧的起始vnode初始赋值为list的第一个
+    let oldEndVnode = oldCh[oldEndIdx] // 旧的结尾vnode初始赋值为list的最后一个
+    let newEndIdx = newCh.length - 1 // 新list结尾索引
+    let newStartVnode = newCh[0] // 旧的起始vnode初始赋值为list的第一个
+    let newEndVnode = newCh[newEndIdx] // 旧的结尾vnode初始赋值为list的最后一个
+    /**
+     * 变量定义
+     * oldKeyToIdx要存一个哈希表，存放的内容是oldVnode的key
+     * idxInOld会存放根据哈希表中的key找到的对应oldVnode
+     * vnodeToMove我们要移动的vnode
+     * refElm就到下面去看注释把
+     */
+    
     let oldKeyToIdx, idxInOld, vnodeToMove, refElm
 
     // removeOnly is a special flag used only by <transition-group>
@@ -546,12 +554,13 @@ export function createPatchFunction (backend) {
     index,
     removeOnly
   ) {
+    // 同一个vnode 返回
     if (oldVnode === vnode) {
       return
     }
 
     if (isDef(vnode.elm) && isDef(ownerArray)) {
-      // clone reused vnode
+      // 克隆重用 vnode
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
@@ -566,8 +575,8 @@ export function createPatchFunction (backend) {
       return
     }
 
-    // reuse element for static trees.
-    // note we only do this if the vnode is cloned -
+    // reuse element for static trees. 静态树重用元素
+    // note we only do this if the vnode is cloned // 只有当克隆了vnode时，我们才这样做
     // if the new node is not cloned it means the render functions have been
     // reset by the hot-reload-api and we need to do a proper re-render.
     if (isTrue(vnode.isStatic) &&
@@ -755,10 +764,11 @@ export function createPatchFunction (backend) {
       const isRealElement = isDef(oldVnode.nodeType) // oldVnode是否是一个真的节点，存在nodeType属性
       // 是同一个节点，就开始修补现有节点
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
-        // patch existing root node
+        // 修补现有根节点
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
       } else {
         if (isRealElement) {
+          // Vnode在服务端渲染的一些处理
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
@@ -787,11 +797,11 @@ export function createPatchFunction (backend) {
           oldVnode = emptyNodeAt(oldVnode)
         }
 
-        // replacing existing element
+        // 替换现有元素
         const oldElm = oldVnode.elm
         const parentElm = nodeOps.parentNode(oldElm)
 
-        // create new node
+        // 创建一个新的 node
         createElm(
           vnode,
           insertedVnodeQueue,
@@ -832,7 +842,7 @@ export function createPatchFunction (backend) {
           }
         }
 
-        // destroy old node
+        // 销毁老节点
         if (isDef(parentElm)) {
           removeVnodes(parentElm, [oldVnode], 0, 0)
         } else if (isDef(oldVnode.tag)) {
