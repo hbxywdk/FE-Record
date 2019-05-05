@@ -24,6 +24,12 @@ export function initRender (vm: Component) {
   const renderContext = parentVnode && parentVnode.context
   vm.$slots = resolveSlots(options._renderChildren, renderContext)
   vm.$scopedSlots = emptyObject
+  /**
+   * vm._c = vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
+   * 一用于内部，一个供用户使用
+   * 使用defineReactive方法定义 $attrs https://vue.docschina.org/v2/api/#vm-attrs
+   * 与$listeners https://vue.docschina.org/v2/api/#vm-listeners
+   */
   // bind the createElement fn to this instance
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
@@ -32,7 +38,6 @@ export function initRender (vm: Component) {
   // normalization is always applied for the public version, used in
   // user-written render functions.
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
-
   // $attrs & $listeners are exposed for easier HOC creation.
   // they need to be reactive so that HOCs using them are always updated
   const parentData = parentVnode && parentVnode.data
@@ -66,8 +71,11 @@ export function renderMixin (Vue: Class<Component>) {
     return nextTick(fn, this)
   }
 
+  // var vm = new Vue({ el: '.arrow', data: { a: 1 }, template: '<div>hello<div>111</div><div>222</div></div>' })
+  // console.log(vm_render()) // vNode
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
+    // render是之前生成的render函数
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {
@@ -87,8 +95,13 @@ export function renderMixin (Vue: Class<Component>) {
       // There's no need to maintain a stack becaues all render fns are called
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
+      // 因为所有渲染fns都是彼此分开调用的，所以不需要维护堆栈。 修补父组件时将调用嵌套组件的渲染fns。
       currentRenderingInstance = vm
-      vnode = render.call(vm._renderProxy, vm.$createElement)
+
+      // vm._renderProxy在core\instance\init.js中，这里可以看做this
+      // vnode = render.call(this, vm.$createElement)
+      vnode = render.call(vm._renderProxy, vm.$createElement) // 👈👈👈👈👈
+      
     } catch (e) {
       handleError(e, vm, `render`)
       // return error render result,
@@ -108,6 +121,7 @@ export function renderMixin (Vue: Class<Component>) {
       currentRenderingInstance = null
     }
     // if the returned array contains only a single node, allow it
+    // 如果返回的数组只有一个元素，则 vnode = vnode[0]
     if (Array.isArray(vnode) && vnode.length === 1) {
       vnode = vnode[0]
     }
@@ -120,6 +134,7 @@ export function renderMixin (Vue: Class<Component>) {
           vm
         )
       }
+      // render 函数抛错则返回一个空vNode
       vnode = createEmptyVNode()
     }
     // set parent

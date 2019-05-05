@@ -144,7 +144,9 @@ export function mountComponent (
   el: ?Element,
   hydrating?: boolean
 ): Component {
+  // el
   vm.$el = el
+  // 一些警告提示语
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode
     if (process.env.NODE_ENV !== 'production') {
@@ -165,10 +167,11 @@ export function mountComponent (
       }
     }
   }
+  // 触发 beforeMount 钩子
   callHook(vm, 'beforeMount')
 
   let updateComponent
-  /* istanbul ignore if */
+  /* istanbul ignore if 非生产环境下的性能监控 */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
     updateComponent = () => {
       const name = vm._name
@@ -188,24 +191,39 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
+      // vm._render() 将 render函数转换为 vNode ，vm._update 以其为参数发布更新
       vm._update(vm._render(), hydrating)
     }
   }
 
-  // we set this to vm._watcher inside the watcher's constructor
+  // we set this to vm._watcher inside the watcher's constructor 
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+
+  // 我们在 watcher的 构造函数中将 vm._watcher 设置为 this（isRenderWatcher参数）
+  // watcher 初始化时可能会调用 $forceUpdate 方法（比如：内部子组件的 mounted 钩子）
+  // 这需要 vm._watcher 已经定义过，如下：
+  // Vue.prototype.$forceUpdate = function () {
+  //   const vm: Component = this
+  //   if (vm._watcher) {
+  //     vm._watcher.update()
+  //   }
+  // }
+
+  // 实例化一个 Watcher 通过它的回调函数 updateComponent 来调用 vm._update 更新视图
   new Watcher(vm, updateComponent, noop, {
     before () {
+      // Vue已挂载且没被销毁才会触发 beforeUpdate 钩子
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
     }
-  }, true /* isRenderWatcher */)
+  }, true /* isRenderWatcher参数 */)
   hydrating = false
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
+  // 修改 vm._isMounted 为 true ，手动触发 mounted 钩子
   if (vm.$vnode == null) {
     vm._isMounted = true
     callHook(vm, 'mounted')
@@ -334,6 +352,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+// 触发指定生命周期
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()

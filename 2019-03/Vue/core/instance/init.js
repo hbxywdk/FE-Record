@@ -19,6 +19,8 @@ export function initMixin (Vue: Class<Component>) {
     // Vue 的uid
     vm._uid = uid++
 
+    // mark与measure，用于做标记和清除标记，供用户自定义统计一些数据，比如某函数运行耗时等
+    // 在_init方法末尾也有对应方法
     let startTag, endTag
     /* istanbul ignore if */
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -32,7 +34,7 @@ export function initMixin (Vue: Class<Component>) {
     vm._isVue = true
     
     // 😀参数的处理
-    // merge options
+    // 如果是组件，则初始化内部组件
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -50,28 +52,39 @@ export function initMixin (Vue: Class<Component>) {
 
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      // Vue在开发环境使用了Proxy新API
+      // Vue在开发环境，，如果支持Proxy则使用Proxy新API
       initProxy(vm)
     } else {
-      // 让vm._renderProxy = this
+      // vm._renderProxy = this
       vm._renderProxy = vm
     }
     // expose real self
+    // vm._self = this
     vm._self = vm
 
     // 😀初始化生命周期
+    // 实际上是在vm上加了一堆属性
     initLifecycle(vm)
 
     // 😀️初始化事件
+    // 定义 vm._events = Object.create(null)
+    // 定义 vm._hasHookEvent = false等
     initEvents(vm)
 
     // 😀初始化Render
+    /**
+     * vm._c = vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
+     * 一用于内部，一个供用户使用
+     * 使用defineReactive方法定义 
+     * $attrs https://vue.docschina.org/v2/api/#vm-attrs
+     * 与$listeners https://vue.docschina.org/v2/api/#vm-listeners
+     */
     initRender(vm)
 
     // 😀触发beforeCreate钩子
     callHook(vm, 'beforeCreate')
 
-    // 在data/props之前初始化注入
+    // 在data/props之前初始化注入provide/inject https://vue.docschina.org/v2/api/#provide-inject
     // resolve injections before data/props
     initInjections(vm)
 
@@ -86,6 +99,7 @@ export function initMixin (Vue: Class<Component>) {
     callHook(vm, 'created')
 
     /* istanbul ignore if */
+    // mark与measure，用于做标记和清除标记，在_init函数起始处有对应函数
     if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false)
       mark(endTag)

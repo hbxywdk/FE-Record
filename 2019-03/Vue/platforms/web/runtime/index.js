@@ -46,6 +46,7 @@ Vue.prototype.$mount = function (
 /* istanbul ignore next */
 if (inBrowser) {
   setTimeout(() => {
+    // 下载Vue Devtools的提示
     if (config.devtools) {
       if (devtools) {
         devtools.emit('init', Vue)
@@ -59,6 +60,7 @@ if (inBrowser) {
         )
       }
     }
+    // 生产环境下跑dev代码的的警告
     if (process.env.NODE_ENV !== 'production' &&
       process.env.NODE_ENV !== 'test' &&
       config.productionTip !== false &&
