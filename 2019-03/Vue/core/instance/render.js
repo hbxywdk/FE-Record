@@ -72,10 +72,10 @@ export function renderMixin (Vue: Class<Component>) {
   }
 
   // var vm = new Vue({ el: '.arrow', data: { a: 1 }, template: '<div>hello<div>111</div><div>222</div></div>' })
-  // console.log(vm_render()) // vNode
+  // console.log(vm._render()) // vNode
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
-    // render是之前生成的render函数
+    // 这个 render 是之前以 template 生成的 'render函数'，生成后它就在 vm.$options 上挂着，这里将他取出。
     const { render, _parentVnode } = vm.$options
 
     if (_parentVnode) {
@@ -88,6 +88,7 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+    // 设置父vNode，允许 render函数 访问占位节点上的数据
     vm.$vnode = _parentVnode
     // render self
     let vnode

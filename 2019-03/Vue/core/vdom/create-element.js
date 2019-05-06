@@ -96,19 +96,41 @@ export function _createElement (
   if (typeof tag === 'string') {
     let Ctor
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag)
+
+    // 检查是否是当前运行环境（默认指浏览器）下存在的标签名，方法在：platforms\web\util\element.js中
     if (config.isReservedTag(tag)) {
       // platform built-in elements
+      // 创建 vNode
       vnode = new VNode(
         config.parsePlatformTagName(tag), data, children,
         undefined, undefined, context
       )
+/*
+Vue.component('button-component', {
+  template: '<button>Button</button>'
+})
+var vm = new Vue({
+  el: '.logo',
+  data: { a: 1 },
+  template: `
+            <div>
+              hello{{ a }}
+              <div>111</div>
+              <div>222</div>
+              <button-component></button-component>
+            </div>
+            `
+})
+ */
     } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
+      // 创建组件
       vnode = createComponent(Ctor, data, context, children, tag)
     } else {
       // unknown or unlisted namespaced elements
       // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
+      // 未知元素
       vnode = new VNode(
         tag, data, children,
         undefined, undefined, context
@@ -116,8 +138,11 @@ export function _createElement (
     }
   } else {
     // direct component options / constructor
+    // 直接就是个组件
     vnode = createComponent(tag, data, context, children)
   }
+
+  // return vnode 的各种判断
   if (Array.isArray(vnode)) {
     return vnode
   } else if (isDef(vnode)) {

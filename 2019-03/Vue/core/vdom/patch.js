@@ -546,24 +546,15 @@ export function createPatchFunction (backend) {
     }
   }
 
-  function patchVnode (
-    oldVnode,
-    vnode,
-    insertedVnodeQueue,
-    ownerArray,
-    index,
-    removeOnly
-  ) {
-    // 同一个vnode 返回
-    if (oldVnode === vnode) {
-      return
-    }
-
+  function patchVnode ( oldVnode, vnode, insertedVnodeQueue, ownerArray, index, removeOnly ) {
+    // 如果是同一个vnode return
+    if (oldVnode === vnode) { return }
     if (isDef(vnode.elm) && isDef(ownerArray)) {
       // 克隆重用 vnode
       vnode = ownerArray[index] = cloneVNode(vnode)
     }
 
+    // 设置 新vnode的elm 与 旧vnode.elm 相同（都为同一个DOM）
     const elm = vnode.elm = oldVnode.elm
 
     if (isTrue(oldVnode.isAsyncPlaceholder)) {
@@ -574,7 +565,6 @@ export function createPatchFunction (backend) {
       }
       return
     }
-
     // reuse element for static trees. 静态树重用元素
     // note we only do this if the vnode is cloned // 只有当克隆了vnode时，我们才这样做
     // if the new node is not cloned it means the render functions have been
@@ -601,6 +591,7 @@ export function createPatchFunction (backend) {
       if (isDef(i = data.hook) && isDef(i = i.update)) i(oldVnode, vnode)
     }
     if (isUndef(vnode.text)) {
+      // 如果新旧vNode都有children则调用updateChildren方法来对比他俩的children
       if (isDef(oldCh) && isDef(ch)) {
         if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly)
       } else if (isDef(ch)) {
@@ -746,13 +737,24 @@ export function createPatchFunction (backend) {
     }
   }
   //  新旧vnode对比
+  /**
+   * nodeOps是一些原生DOM操作方法，在platforms\web\runtime\node-ops.js中
+   * --------------------------------------
+   * 如果是初始化会传以下几个参数：
+   * vm.__patch__(vm.$el, vnode, hydrating, false) 
+   * // vm.$el 是要挂载到的DOM，vnode就是vnode，hydrating用于服务端渲染不用管，最后一个参数是removeOnly
+   * 如果是更新则会传两个参数
+   * vm.__patch__(prevVnode, vnode) 
+   * // prevVnode 是旧 vNode，vnode 是新 vNode
+   * 
+   */
   return function patch (oldVnode, vnode, hydrating, removeOnly) {
-    // vnode不存在则调用oldVnode的销毁钩子
+    // vnode不存在，oldVnode存在，说明节点被移除了，直接调用销毁钩子
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
     }
-
+    
     let isInitialPatch = false
     const insertedVnodeQueue = []
     // 如果oldVnode不存在的话，就新建一个根节点
@@ -761,17 +763,23 @@ export function createPatchFunction (backend) {
       isInitialPatch = true
       createElm(vnode, insertedVnodeQueue)
     } else {
-      const isRealElement = isDef(oldVnode.nodeType) // oldVnode是否是一个真的节点，存在nodeType属性
-      // 是同一个节点，就开始修补现有节点
+
+      // 👇根据 oldVnode 是否存在 nodeType 属性 来判断是否是一个真实DOM节点
+      // 👇如果存在 nodeType 说明当前走的是 初始化 流程
+      const isRealElement = isDef(oldVnode.nodeType)
+
+      // 走update流程 且 是同一个节点，直接调用 patchVnode 方法
       if (!isRealElement && sameVnode(oldVnode, vnode)) {
         // 修补现有根节点
         patchVnode(oldVnode, vnode, insertedVnodeQueue, null, null, removeOnly)
-      } else {
+      } 
+      else {
+        // oldVnode 是 真实节点，走 init 流程
         if (isRealElement) {
-          // Vnode在服务端渲染的一些处理
           // mounting to a real element
           // check if this is server-rendered content and if we can perform
           // a successful hydration.
+          // Vnode在服务端渲染的一些处理，这里暂且不看
           // 如果oldVnode的是一个Element节点 && 存在服务端渲染的属性
           if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
             // 则移除其SSR属性，再将hydrating设置为true
@@ -792,12 +800,14 @@ export function createPatchFunction (backend) {
               )
             }
           }
+
           // either not server-rendered, or hydration failed.
           // create an empty node and replace it
+          // 不是服务端渲染的话，且是初始化流程，把oldVnode替换为一个空的vNode
           oldVnode = emptyNodeAt(oldVnode)
         }
 
-        // 替换现有元素
+        // 当前节点与其父节点
         const oldElm = oldVnode.elm
         const parentElm = nodeOps.parentNode(oldElm)
 
@@ -813,6 +823,7 @@ export function createPatchFunction (backend) {
         )
 
         // update parent placeholder node element, recursively
+        // 递归更新父节点占位节点元素
         if (isDef(vnode.parent)) {
           let ancestor = vnode.parent
           const patchable = isPatchable(vnode)
@@ -842,10 +853,12 @@ export function createPatchFunction (backend) {
           }
         }
 
-        // 销毁老节点
+        // 有父元素
         if (isDef(parentElm)) {
           removeVnodes(parentElm, [oldVnode], 0, 0)
-        } else if (isDef(oldVnode.tag)) {
+        } 
+        // 没有父元素触发销毁
+        else if (isDef(oldVnode.tag)) {
           invokeDestroyHook(oldVnode)
         }
       }

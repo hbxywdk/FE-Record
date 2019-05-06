@@ -57,23 +57,28 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
-    // Vue.prototype.__patch__ is injected in entry points
-    // based on the rendering backend used.
+
+    // 没有vm._vnode说明没有 mount过，这里走初始化流程
     if (!prevVnode) {
       // initial render
-      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
-    } else {
-      // updates
-      vm.$el = vm.__patch__(prevVnode, vnode)
+      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */) // 👈👈👈 vm.__patch__ 就是 core\vdom\patch.js 中的 patch 方法
     }
+    // 有vm._vnode说明已经 mount过，这里走更新流程
+    else {
+      // updates
+      vm.$el = vm.__patch__(prevVnode, vnode) // 👈👈👈
+    }
+    
     restoreActiveInstance()
     // update __vue__ reference
+    // 更新 __vue__ 引用
     if (prevEl) {
       prevEl.__vue__ = null
     }

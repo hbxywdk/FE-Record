@@ -98,6 +98,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 创建组件
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -108,10 +109,12 @@ export function createComponent (
   if (isUndef(Ctor)) {
     return
   }
-
+  
+  // baseCtor是Vue的构造函数
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
+  // 使用 Vue 的基础构造函数，创建一个“子类(subclass) ”。
   if (isObject(Ctor)) {
     Ctor = baseCtor.extend(Ctor)
   }
@@ -125,7 +128,7 @@ export function createComponent (
     return
   }
 
-  // async component
+  // async component 异步组件
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor

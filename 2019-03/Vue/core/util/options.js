@@ -449,15 +449,25 @@ export function resolveAsset (
   if (typeof id !== 'string') {
     return
   }
-  const assets = options[type]
-  // check local registration variations first
+  const assets = options[type] // 找出options中的所有组件 --> vm.$options['components']
+
+  // 先检查本地的 components 有没有对应的组件（对应形参id）
   if (hasOwn(assets, id)) return assets[id]
+
+  // 上面一步如果没找到，则将组件名称转为驼峰写法。
   const camelizedId = camelize(id)
+  
+  // 用驼峰写法的组件名再次寻找
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+
+  // 还找不到，则将组件名首字母转为大写，再找一次
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
+
   // fallback to prototype chain
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
+
+  // 找不到组件警告
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
