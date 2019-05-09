@@ -633,6 +633,7 @@ export function createPatchFunction (backend) {
   const isRenderedModule = makeMap('attrs,class,staticClass,staticStyle,key')
 
   // Note: this is a browser-only function so we can assume elms are DOM nodes.
+  // hydrate函数会对比服务端的的虚拟DOM与浏览器的真实DOM是否一致
   function hydrate (elm, vnode, insertedVnodeQueue, inVPre) {
     let i
     const { tag, data, children } = vnode
