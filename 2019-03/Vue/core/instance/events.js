@@ -9,14 +9,18 @@ import {
 } from '../util/index'
 import { updateListeners } from '../vdom/helpers/index'
 
-// 定义 vm._events = Object.create(null)
-// 定义 vm._hasHookEvent = false
+// 初始化事件
 export function initEvents (vm: Component) {
+  // 创建vm._events，它是一个空对象，用来存放事件，之后会变为这个样子
+  // vm._events = {
+  //   eventName1: [fna1, fna2],
+  //   eventName2: [fnb1, fnb2]
+  // }
   vm._events = Object.create(null)
+  // 是否存在事件钩子，初始为false
   vm._hasHookEvent = false
   // init parent attached events
-  // 初始化父组件的附加事件
-  const listeners = vm.$options._parentListeners
+  const listeners = vm.$options._parentListeners // 这个是父组件上添加的事件监听，HTML上的事件不走这里
   if (listeners) {
     updateComponentListeners(vm, listeners)
   }
@@ -56,11 +60,14 @@ export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
+    // 如果event参数是个数组，则会循环event，为其中每一个元素都调用一次vm.$on()
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         vm.$on(event[i], fn)
       }
     } else {
+      // 如果 vm._events 中定义过这个事件，就直接把回调 'fn' push进去
+      // 没定义过这个事件就把 vm._events[event] 赋值为 []，在把 'fn' push进去
       (vm._events[event] || (vm._events[event] = [])).push(fn)
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
@@ -71,6 +78,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 只触发一次的事件
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
     function on () {
@@ -78,6 +86,7 @@ export function eventsMixin (Vue: Class<Component>) {
       fn.apply(vm, arguments)
     }
     on.fn = fn
+    // 该事件只要执行过一次，就会执行 on 回调函数，销毁该事件
     vm.$on(event, on)
     return vm
   }
@@ -89,23 +98,24 @@ export function eventsMixin (Vue: Class<Component>) {
       vm._events = Object.create(null)
       return vm
     }
-    // array of events
+    // event参数是个数组，循环，依次调用$off
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
         vm.$off(event[i], fn)
       }
       return vm
     }
-    // specific event
+    // cbs 就是我们要 off 的事件
     const cbs = vm._events[event]
     if (!cbs) {
       return vm
     }
+    // 没有fn传入，则直接销毁对应'全部'event，然后返回vm
     if (!fn) {
       vm._events[event] = null
       return vm
     }
-    // specific handler
+    // 这里处理要销毁指定函数的情况
     let cb
     let i = cbs.length
     while (i--) {
@@ -132,12 +142,15 @@ export function eventsMixin (Vue: Class<Component>) {
         )
       }
     }
+    // 在 vm._events 中寻找有没有对应的事件
     let cbs = vm._events[event]
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs
+      // 截掉第一个event参数，保留其他参数
       const args = toArray(arguments, 1)
       const info = `event handler for "${event}"`
       for (let i = 0, l = cbs.length; i < l; i++) {
+        // 带有错误处理的调用
         invokeWithErrorHandling(cbs[i], vm, args, vm, info)
       }
     }

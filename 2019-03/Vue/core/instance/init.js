@@ -67,8 +67,6 @@ export function initMixin (Vue: Class<Component>) {
     initLifecycle(vm)
 
     // 😀️初始化事件
-    // 定义 vm._events = Object.create(null)
-    // 定义 vm._hasHookEvent = false等
     initEvents(vm)
 
     // 😀初始化Render

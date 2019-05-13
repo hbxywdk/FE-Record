@@ -15,9 +15,9 @@ function Vue (options) {
   this._init(options)
 }
 
-initMixin(Vue) // 混入一些功能
+initMixin(Vue) // 初始化混入
 stateMixin(Vue)
-eventsMixin(Vue)
+eventsMixin(Vue) // 混入 Vue.prototype.$on 、$once、$off、$emit方法
 lifecycleMixin(Vue)
 renderMixin(Vue)
 

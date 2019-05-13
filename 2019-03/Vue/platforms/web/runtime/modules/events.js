@@ -101,6 +101,7 @@ function remove (
 }
 
 function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
+  // 新老vNode都没有data.on，return
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
@@ -108,6 +109,7 @@ function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   const oldOn = oldVnode.data.on || {}
   target = vnode.elm
   normalizeEvents(on)
+  // 更新事件
   updateListeners(on, oldOn, add, remove, createOnceHandler, vnode.context)
   target = undefined
 }

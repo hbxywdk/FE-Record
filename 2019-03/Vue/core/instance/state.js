@@ -289,7 +289,7 @@ function initMethods (vm: Component, methods: Object) {
         )
       }
     }
-    vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm)
+    vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm) // bind修正this指向为vm
   }
 }
 

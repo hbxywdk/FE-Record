@@ -168,9 +168,11 @@ export function createComponent (
 
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
+  // 提取侦听器，因为需要将这些侦听器视为子组件侦听器而不是DOM侦听器。
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
+  // 替换为.NATIVE修饰符的侦听器，以便在父组件修补程序期间对其进行处理。
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
@@ -190,6 +192,7 @@ export function createComponent (
 
   // return a placeholder vnode
   const name = Ctor.options.name || tag
+  // new vNode创建组件
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
     data, undefined, undefined, undefined, context,
