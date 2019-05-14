@@ -47,14 +47,17 @@ export default class Watcher {
     expOrFn: string | Function,
     cb: Function,
     options?: ?Object,
-    isRenderWatcher?: boolean
+    isRenderWatcher?: boolean // 这个应该是给 template 中定义的 data 用的
   ) {
     this.vm = vm
+    // 如果是渲染的 Watcher ，vm._watcher 指向当前 this
     if (isRenderWatcher) {
       vm._watcher = this
     }
+    // 向 vm._watchers push this
     vm._watchers.push(this)
-    // options
+    
+    // 这是 watch 的配置项
     if (options) {
       this.deep = !!options.deep
       this.user = !!options.user
@@ -62,8 +65,10 @@ export default class Watcher {
       this.sync = !!options.sync
       this.before = options.before
     } else {
+      // watch 没配置项，给默认配置
       this.deep = this.user = this.lazy = this.sync = false
     }
+    // 一系列初始化
     this.cb = cb
     this.id = ++uid // uid for batching
     this.active = true
@@ -92,17 +97,19 @@ export default class Watcher {
     }
     this.value = this.lazy
       ? undefined
-      : this.get()
+      : this.get() // 调用 this.get()
   }
 
   /**
    * Evaluate the getter, and re-collect dependencies.
    */
   get () {
+    // 👇 pushTarget(this)，将 Dep.target 赋值为 this
     pushTarget(this)
     let value
     const vm = this.vm
     try {
+      // 要 watch 的获取值
       value = this.getter.call(vm, vm)
     } catch (e) {
       if (this.user) {
@@ -116,7 +123,9 @@ export default class Watcher {
       if (this.deep) {
         traverse(value)
       }
+      // 👇 清空 Dep.target
       popTarget()
+      // 清空依赖
       this.cleanupDeps()
     }
     return value
@@ -124,6 +133,7 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
+   * 向此指令添加依赖项。
    */
   addDep (dep: Dep) {
     const id = dep.id
@@ -138,6 +148,7 @@ export default class Watcher {
 
   /**
    * Clean up for dependency collection.
+   * 清理依赖集合
    */
   cleanupDeps () {
     let i = this.deps.length
@@ -160,6 +171,7 @@ export default class Watcher {
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
+   * 在依赖变更时调用
    */
   update () {
     /* istanbul ignore else */
@@ -224,6 +236,7 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
+   * 移除 watch
    */
   teardown () {
     if (this.active) {

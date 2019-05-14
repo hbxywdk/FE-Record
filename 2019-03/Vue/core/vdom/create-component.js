@@ -165,15 +165,14 @@ export function createComponent (
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
-
-  // extract listeners, since these needs to be treated as
-  // child component listeners instead of DOM listeners
-  // 提取侦听器，因为需要将这些侦听器视为子组件侦听器而不是DOM侦听器。
+  // extract listeners, since these needs to be treated as child component listeners instead of DOM listeners
+  // 提取data参数里的事件(data.on)，这些事件会被作为为子组件事件侦听而不是DOM侦听。
   const listeners = data.on
-  // replace with listeners with .native modifier
-  // so it gets processed during parent component patch.
-  // 替换为.NATIVE修饰符的侦听器，以便在父组件修补程序期间对其进行处理。
+  // replace with listeners with .native modifier so it gets processed during parent component patch.
+  // data大概长这样{on: {'click': fn1}, nativeOn: {'click': fn2}}
+  // data.nativeOn内存放 在组件上绑定了具有.native修饰符的事件，这些事件最终会被绑定在DOM上，其他的事件仍然走Vue自定义事件那一套。
   data.on = data.nativeOn
+  // 这里用 listeners 缓存了原有的 data.on ，再用 data.nativeOn 来覆盖 原有data.on
 
   if (isTrue(Ctor.options.abstract)) {
     // abstract components do not keep anything

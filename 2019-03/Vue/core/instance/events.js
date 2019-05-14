@@ -20,7 +20,8 @@ export function initEvents (vm: Component) {
   // 是否存在事件钩子，初始为false
   vm._hasHookEvent = false
   // init parent attached events
-  const listeners = vm.$options._parentListeners // 这个是父组件上添加的事件监听，HTML上的事件不走这里
+  // 这个 listeners 是父组件上添加的事件监听，HTML上的事件不走这里，大概长这样 {'eventName', fn}
+  const listeners = vm.$options._parentListeners 
   if (listeners) {
     updateComponentListeners(vm, listeners)
   }

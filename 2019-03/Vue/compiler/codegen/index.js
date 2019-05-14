@@ -46,6 +46,8 @@ export function generate (
 ): CodegenResult {
   const state = new CodegenState(options)
   const code = ast ? genElement(ast, state) : '_c("div")'
+  
+  // 返回生成的渲染函数
   return {
     render: `with(this){return ${code}}`,
     staticRenderFns: state.staticRenderFns

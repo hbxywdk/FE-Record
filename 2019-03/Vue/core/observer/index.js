@@ -62,11 +62,7 @@ export class Observer {
     
   }
 
-  /**
-   * Walk through all properties and convert them into
-   * getter/setters. This method should only be called when
-   * value type is Object.
-   */
+  // 遍历 value 所有的属性，每一个都调用 defineReactive 函数（这个方法仅在 value 是 Object 时调用）
   walk (obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
@@ -74,9 +70,7 @@ export class Observer {
     }
   }
 
-  /**
-   * Observe a list of Array items.
-   */
+  // 观察数组元素
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i])
@@ -147,12 +141,15 @@ export function defineReactive (
 ) {
   const dep = new Dep()
 
+  // 获取 obj.key 的属性描述 
   const property = Object.getOwnPropertyDescriptor(obj, key)
+  // 没有属性描述直接返回
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 属性描述的 getter/setter（定义了则可以获取到）
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
@@ -160,12 +157,16 @@ export function defineReactive (
   }
 
   let childOb = !shallow && observe(val)
+
+  // 使用 Object.defineProperty 对数据进行监听
   Object.defineProperty(obj, key, {
-    enumerable: true,
-    configurable: true,
+    enumerable: true, // 可枚举
+    configurable: true, // 可配置
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
+      // 这个Dep.target是用于添加 Watcher 的，正常情况下它的值为 null
       if (Dep.target) {
+        // 添加 Watcher 相关
         dep.depend()
         if (childOb) {
           childOb.dep.depend()
@@ -174,11 +175,13 @@ export function defineReactive (
           }
         }
       }
+      // 返回对应值
       return value
     },
     set: function reactiveSetter (newVal) {
       const value = getter ? getter.call(obj) : val
       /* eslint-disable no-self-compare */
+      // 设置的新旧值一样，return
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -187,13 +190,16 @@ export function defineReactive (
         customSetter()
       }
       // #7981: for accessor properties without setter
+      // 访问器属性没有 setter 也 return
       if (getter && !setter) return
+      // 有 setter 则调用它
       if (setter) {
         setter.call(obj, newVal)
-      } else {
-        val = newVal
-      }
+      } 
+      // 没有 setter 直接赋值
+      else { val = newVal }
       childOb = !shallow && observe(newVal)
+      // 值修改后通知所有 Watcher
       dep.notify()
     }
   })

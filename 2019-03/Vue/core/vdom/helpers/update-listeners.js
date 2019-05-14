@@ -59,15 +59,17 @@ export function updateListeners (
   vm: Component
 ) {
   let name, def, cur, old, event
+  // 遍历on
   for (name in on) {
     def = cur = on[name]
     old = oldOn[name]
     event = normalizeEvent(name)
-    /* istanbul ignore if */
+    /* istanbul ignore if WEEX的处理 */
     if (__WEEX__ && isPlainObject(def)) {
       cur = def.handler
       event.params = def.params
     }
+    // 事件不存在会在非生产模式下报警告
     if (isUndef(cur)) {
       process.env.NODE_ENV !== 'production' && warn(
         `Invalid handler for event "${event.name}": got ` + String(cur),
@@ -77,15 +79,19 @@ export function updateListeners (
       if (isUndef(cur.fns)) {
         cur = on[name] = createFnInvoker(cur, vm)
       }
+      // 处理只触发一次的自定义事件
       if (isTrue(event.once)) {
         cur = on[name] = createOnceHandler(event.name, cur, event.capture)
       }
+      // 添加事件
       add(event.name, cur, event.capture, event.passive, event.params)
     } else if (cur !== old) {
       old.fns = cur
       on[name] = old
     }
   }
+  
+  // 遍历oldOn，移除on中已经移除的事件
   for (name in oldOn) {
     if (isUndef(on[name])) {
       event = normalizeEvent(name)
