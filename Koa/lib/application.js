@@ -1,22 +1,20 @@
 
 'use strict';
 
-/**
- * Module dependencies.
- */
-
-const isGeneratorFunction = require('is-generator-function');
+// 模块依赖.
 const debug = require('debug')('koa:application');
+const isGeneratorFunction = require('is-generator-function'); // 检查是否是一个 generator 函数
+const convert = require('koa-convert'); // 在 use 方法中转换 generator 函数为 Koa 可以用的形式
+const compose = require('koa-compose'); // 对中间件数组进行排版
+const isJSON = require('koa-is-json'); // 检查 ctx.body 是否是一个 JSON
+
 const onFinished = require('on-finished');
-const compose = require('koa-compose');
-const isJSON = require('koa-is-json');
 const statuses = require('statuses');
 const Emitter = require('events');
 const util = require('util');
 const Stream = require('stream');
 const http = require('http');
 const only = require('only');
-const convert = require('koa-convert');
 const deprecate = require('depd')('koa');
 // 引入其他三个文件
 const request = require('./request');
@@ -37,7 +35,7 @@ module.exports = class Application extends Emitter {
     super();
     // 属性定义
     this.proxy = false;
-    this.middleware = [];
+    this.middleware = []; // 存放所有 use 的中间件
     this.subdomainOffset = 2;
     this.env = process.env.NODE_ENV || 'development';
     // 其他三个文件，导出的都是 Object
@@ -49,7 +47,7 @@ module.exports = class Application extends Emitter {
     }
   }
   /**
-   * Shorthand for: http.createServer(app.callback()).listen(...)
+   * 简写为: http.createServer(app.callback()).listen(...)
    * @param {Mixed} ...
    * @return {Server}
    * @api public
@@ -87,10 +85,11 @@ module.exports = class Application extends Emitter {
    * @param {Function} fn
    * @return {Application} self
    * @api public
-   * use方法
+   * use方法，老的中间件写法在这里会被转换
    */
   use(fn) {
-    if (typeof fn !== 'function') throw new TypeError('middleware must be a function!');
+    if (typeof fn !== 'function') throw new TypeError('middleware must be a function!'); // 中间件必须为函数
+    // 检查是否是 generator 函数，如果是则会给出提示：将会在 3.x 版本移除对 generator 函数的支持
     if (isGeneratorFunction(fn)) {
       deprecate('Support for generators will be removed in v3. ' +
                 'See the documentation for examples of how to convert old middleware ' +
@@ -98,6 +97,7 @@ module.exports = class Application extends Emitter {
       fn = convert(fn);
     }
     debug('use %s', fn._name || fn.name || '-');
+    // 将中间件函数 push 到 this.middleware中
     this.middleware.push(fn);
     return this;
   }
@@ -110,11 +110,12 @@ module.exports = class Application extends Emitter {
   callback() {
     const fn = compose(this.middleware);
     if (!this.listenerCount('error')) this.on('error', this.onerror);
+    // 定义handleRequest
     const handleRequest = (req, res) => {
+      // ctx
       const ctx = this.createContext(req, res);
       return this.handleRequest(ctx, fn);
     };
-
     return handleRequest;
   }
   /**
@@ -166,10 +167,7 @@ module.exports = class Application extends Emitter {
   }
 };
 
-/**
- * Response helper.
- */
-
+// Response helper.
 function respond(ctx) {
   // allow bypassing koa
   if (false === ctx.respond) return;
