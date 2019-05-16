@@ -4,10 +4,12 @@ const app = new Koa()
 app.use(async (ctx, next) => {
   console.log(1)
   next()
+  console.log(11)
 })
 app.use(async (ctx, next) => {
   console.log(2)
   next()
+  console.log(22)
 })
 app.use(async ctx => {
   console.log(3)
@@ -16,7 +18,7 @@ app.use(async ctx => {
 
 app.listen(3333)
 
-
+/*
 var middleware = [() => console.log(1), () => console.log(2), () => console.log(3)] // 中间件
 var index = 0 // 起始下标
 
@@ -61,3 +63,4 @@ run(ctx)
 .catch(err => {
   console.error(err)
 })
+*/

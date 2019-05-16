@@ -46,7 +46,10 @@ module.exports = class Application extends Emitter {
     }
   }
   /**
-   * 简写为: http.createServer(app.callback()).listen(...)
+   * app.listen(...) 方法只是 http.createServer(app.callback()).listen(...) 的语法糖
+   * 我们将同一个应用同时启动为 HTTP 和 HTTPS 或多个地址：
+   * http.createServer(app.callback()).listen(3000)
+   * https.createServer(app.callback()).listen(3001)
    * @param {Mixed} ...
    * @return {Server}
    * @api public

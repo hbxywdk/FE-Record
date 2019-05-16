@@ -7,7 +7,7 @@
 
 const util = require('util');
 const createError = require('http-errors');
-const httpAssert = require('http-assert');
+const httpAssert = require('http-assert'); // http 断言
 const delegate = require('delegates');
 const statuses = require('statuses');
 const Cookies = require('cookies');
@@ -70,7 +70,7 @@ const proto = module.exports = {
    * @api public
    */
 
-  assert: httpAssert,
+  assert: httpAssert, // http 断言，与 node 的 assert() 方法类似.
 
   /**
    * Throw an error with `status` (default 500) and
@@ -91,6 +91,7 @@ const proto = module.exports = {
    * @param {String|Number|Error} [err, msg or status]
    * @param {Object} [props]
    * @api public
+   * 用于抛错
    */
 
   throw(...args) {
@@ -99,7 +100,7 @@ const proto = module.exports = {
 
   /**
    * Default error handling.
-   *
+   * 默认的错误处理
    * @param {Error} err
    * @api private
    */
@@ -118,6 +119,7 @@ const proto = module.exports = {
     }
 
     // delegate
+    // 触发 error 事件
     this.app.emit('error', err, this);
 
     // nothing we can do here other
