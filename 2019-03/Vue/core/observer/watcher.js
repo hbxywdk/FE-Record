@@ -178,8 +178,10 @@ export default class Watcher {
     if (this.lazy) {
       this.dirty = true
     } else if (this.sync) {
+      // 同步更新的直接更新
       this.run()
     } else {
+      // 默认异步更新，使用 queueWatcher 将wather推入队列中，下一个tick时调用
       queueWatcher(this)
     }
   }

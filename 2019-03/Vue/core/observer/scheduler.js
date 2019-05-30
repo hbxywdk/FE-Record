@@ -152,6 +152,7 @@ function callActivatedHooks (queue) {
  */
 export function queueWatcher (watcher: Watcher) {
   const id = watcher.id
+  // 这里判断同一个Watcher只会被推入一次
   if (has[id] == null) {
     has[id] = true
     if (!flushing) {
@@ -173,6 +174,7 @@ export function queueWatcher (watcher: Watcher) {
         flushSchedulerQueue()
         return
       }
+      // 下一次Tick更新
       nextTick(flushSchedulerQueue)
     }
   }
