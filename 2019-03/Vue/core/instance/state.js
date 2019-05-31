@@ -181,18 +181,22 @@ export function getData (data: Function, vm: Component): any {
   }
 }
 
+
 const computedWatcherOptions = { lazy: true }
 
 function initComputed (vm: Component, computed: Object) {
   // watchers = vm._computedWatchers = 空对象
   const watchers = vm._computedWatchers = Object.create(null)
+
   // computed properties are just getters during SSR
-  const isSSR = isServerRendering()
+  const isSSR = isServerRendering() 
 
   // 遍历 computed 
   for (const key in computed) {
     const userDef = computed[key]
-    const getter = typeof userDef === 'function' ? userDef : userDef.get // 正确获取要计算的值
+    // 如果定义的 computed 是函数，则获取函数，如果是 getter、setter 形式，则获取 get函数
+    const getter = typeof userDef === 'function' ? userDef : userDef.get
+
     if (process.env.NODE_ENV !== 'production' && getter == null) {
       warn(
         `Getter is missing for computed property "${key}".`,
@@ -201,22 +205,23 @@ function initComputed (vm: Component, computed: Object) {
     }
 
     // 非服务端渲染下 赋值 watchers[key] 为 Watcher
-    // 比如赋值后 watchers 变为 { 'dataName': new Watcher(args) }
+    // 比如赋值后 watchers 变为 { 'computedName': new Watcher(args) }
     if (!isSSR) {
       // create internal watcher for the computed property.
-      // computed 属性的内部观察器
+      // 为 computed 属性定义 Watcher
       watchers[key] = new Watcher(
         vm,
         getter || noop,
         noop,
-        computedWatcherOptions
+        computedWatcherOptions // { lazy: true }
       )
     }
 
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
-    // vm 上已经定义过与当前 computed 同名属性的话，我们就只需要调用 defineComputed 来定义计算属性。
+
+    // 定义过重名的（data、props中），则报错，没有重名则调用 defineComputed
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -229,24 +234,33 @@ function initComputed (vm: Component, computed: Object) {
   }
 }
 
+// const sharedPropertyDefinition = {
+//   enumerable: true,
+//   configurable: true,
+//   get: noop,
+//   set: noop
+// }
 export function defineComputed (
   target: any,
   key: string,
   userDef: Object | Function
 ) {
-  const shouldCache = !isServerRendering()
+  const shouldCache = !isServerRendering() // isServerRendering() 我们直接认为是 false，所以 shouldCache = true
 
   // 修改 sharedPropertyDefinition 的getter/setter
   // 之后会用 Object.defineProperty 劫持 computed 数据
   // 获取数据的时候，走 getter 函数，getter 函数会处理我们定义的 computed 函数，并返回结果
-  if (typeof userDef === 'function') {
+
   // 函数形式的 computed
+  if (typeof userDef === 'function') {
+    
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)
       : createGetterInvoker(userDef)
     sharedPropertyDefinition.set = noop
-  } else {
+
   // getter / setter 形式的 computed 
+  } else {
     sharedPropertyDefinition.get = userDef.get
       ? shouldCache && userDef.cache !== false
         ? createComputedGetter(key)
@@ -267,6 +281,7 @@ export function defineComputed (
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 创建 Computed 的 Getter
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
