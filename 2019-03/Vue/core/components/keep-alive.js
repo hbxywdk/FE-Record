@@ -34,17 +34,18 @@ function pruneCache (keepAliveInstance: any, filter: Function) {
   // _vnode（keep-alive组件的_vnode属性）
   const { cache, keys, _vnode } = keepAliveInstance
 
-  // 遍历 cache
+  // 遍历缓存
   for (const key in cache) {
     const cachedNode: ?VNode = cache[key]
     if (cachedNode) {
+      // 当前遍历组件名称
       const name: ?string = getComponentName(cachedNode.componentOptions)
       if (name && !filter(name)) {
         pruneCacheEntry(cache, key, keys, _vnode)
       }
     }
   }
-
+  
 }
 
 // 销毁实例，并从 cache 中移除
@@ -101,13 +102,13 @@ export default {
   },
 
   render () {
-    const slot = this.$slots.default // 获取 slot
-    // 获取 slot 中第一个有效 component
+    const slot = this.$slots.default // 所有slots数组
+    // 获取 slots 中第一个有效子组件
     const vnode: VNode = getFirstComponentChild(slot) 
     const componentOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions // vnode 的配置项
     if (componentOptions) {
       // check pattern
-       // 组件名，没有组件名就返回 tag 名
+      // 组件名，没有组件名就返回 tag 名
       const name: ?string = getComponentName(componentOptions)
       const { include, exclude } = this
       // 不在 included 或者说 在 excluded 中，则是不缓存的组件，直接返回 vnode。
@@ -132,6 +133,7 @@ export default {
       if (cache[key]) {
         vnode.componentInstance = cache[key].componentInstance
         // make current key freshest
+        // 移除缓存 key，之后重新添加，使 key 保持最新
         remove(keys, key)
         keys.push(key)
       // 未缓存过，添加缓存
