@@ -11,6 +11,7 @@ import {
   getFirstComponentChild
 } from 'core/vdom/helpers/index'
 
+// 定义 transition 组件的 props
 export const transitionProps = {
   name: String,
   appear: Boolean,
@@ -31,6 +32,7 @@ export const transitionProps = {
 
 // in case the child is also an abstract component, e.g. <keep-alive>
 // we want to recursively retrieve the real component to be rendered
+// 获取真正的组件
 function getRealChild (vnode: ?VNode): ?VNode {
   const compOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions
   if (compOptions && compOptions.Ctor.options.abstract) {
@@ -40,6 +42,7 @@ function getRealChild (vnode: ?VNode): ?VNode {
   }
 }
 
+// 提取 transition 上的过渡数据给 child 使用
 export function extractTransitionData (comp: Component): Object {
   const data = {}
   const options: ComponentOptions = comp.$options
@@ -86,12 +89,14 @@ export default {
   abstract: true,
 
   render (h: Function) {
+    // 获取所有的 slots
     let children: any = this.$slots.default
     if (!children) {
       return
     }
 
     // filter out text nodes (possible whitespaces)
+    // 过滤掉文本节点和空节点
     children = children.filter(isNotTextNode)
     /* istanbul ignore if */
     if (!children.length) {
@@ -119,16 +124,20 @@ export default {
       )
     }
 
+    // 第一个节点
     const rawChild: VNode = children[0]
 
     // if this is a component root node and the component's
     // parent container node also has transition, skip.
+    // 组件有 transition 组件的爸爸也有 transition 就直接返回。
     if (hasParentTransition(this.$vnode)) {
       return rawChild
     }
 
     // apply transition data to child
     // use getRealChild() to ignore abstract components e.g. keep-alive
+    // 将过度应用于子项。
+    // 使用 getRealChild() 来忽略 keep-alive 这样的抽象组件。
     const child: ?VNode = getRealChild(rawChild)
     /* istanbul ignore if */
     if (!child) {
@@ -142,6 +151,7 @@ export default {
     // ensure a key that is unique to the vnode type and to this transition
     // component instance. This key will be used to remove pending leaving nodes
     // during entering.
+    // 确保vnode类型和此转换组件实例唯一的密钥。 此密钥将用于在进入期间删除待处理的离开节点。
     const id: string = `__transition-${this._uid}-`
     child.key = child.key == null
       ? child.isComment
@@ -171,6 +181,7 @@ export default {
     ) {
       // replace old child transition data with fresh one
       // important for dynamic transitions!
+      // 替换 old child 的 transition data 为最新的
       const oldData: Object = oldChild.data.transition = extend({}, data)
       // handle transition mode
       if (mode === 'out-in') {
