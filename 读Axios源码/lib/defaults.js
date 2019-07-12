@@ -15,12 +15,12 @@ function setContentTypeIfUnset(headers, value) {
 
 function getDefaultAdapter() {
   var adapter;
-  // Only Node.JS has a process variable that is of [[Class]] process
+  // Node.js 有 process，可以依此来判断 Node.js 环境
   if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
-    // For node use HTTP adapter
+    // node 使用 http
     adapter = require('./adapters/http');
   } else if (typeof XMLHttpRequest !== 'undefined') {
-    // For browsers use XHR adapter
+    // 浏览器使用 XHR
     adapter = require('./adapters/xhr');
   }
   return adapter;

@@ -14,11 +14,11 @@ function encode(val) {
 }
 
 /**
- * Build a URL by appending params to the end
+ * 将参数添加到 url 的末尾
  *
- * @param {string} url The base of the url (e.g., http://www.google.com)
- * @param {object} [params] The params to be appended
- * @returns {string} The formatted url
+ * @param {string} url 配置的 url (e.g., http://www.google.com)
+ * @param {object} [params] 将被添加的参数
+ * @returns {string} 格式化后的 url
  */
 module.exports = function buildURL(url, params, paramsSerializer) {
   /*eslint no-param-reassign:0*/

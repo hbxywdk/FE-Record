@@ -7,8 +7,7 @@ var dispatchRequest = require('./dispatchRequest');
 var mergeConfig = require('./mergeConfig');
 
 /**
- * Create a new instance of Axios
- *
+ * 创建一个 Axios 实例
  * @param {Object} instanceConfig 实例的默认配置
  */
 function Axios(instanceConfig) {
@@ -19,14 +18,23 @@ function Axios(instanceConfig) {
     response: new InterceptorManager()
   };
 }
-
+// function a () {
+//   return new Promise((r) => {
+//     setTimeout(() => {
+//       r()
+//     },3000)
+//   })
+// }
+// promise = Promise.resolve()
+// promise = promise.then(a, () => {});
+// promise.then(() => {
+//   alert(1)
+// })
 /**
  * 发送一个请求
- *
- * @param {Object} config The config specific for this request (merged with this.defaults)
+ * @param {Object} config request 的配置，会与 this.defaults 合并
  */
 Axios.prototype.request = function request(config) {
-  /*eslint no-param-reassign:0*/
   // Allow for axios('example/url'[, config]) a la fetch API
   if (typeof config === 'string') {
     config = arguments[1] || {};
@@ -35,17 +43,19 @@ Axios.prototype.request = function request(config) {
     config = config || {};
   }
 
-  config = mergeConfig(this.defaults, config);
-  config.method = config.method ? config.method.toLowerCase() : 'get';
+  config = mergeConfig(this.defaults, config); // 合并参数
+  config.method = config.method ? config.method.toLowerCase() : 'get'; // 判断请求方法，默认为 get
 
   // Hook up interceptors middleware
   var chain = [dispatchRequest, undefined];
   var promise = Promise.resolve(config);
 
+  // 执行每一个 request 拦截器
   this.interceptors.request.forEach(function unshiftRequestInterceptors(interceptor) {
     chain.unshift(interceptor.fulfilled, interceptor.rejected);
   });
 
+  // 执行每一个 response 拦截器
   this.interceptors.response.forEach(function pushResponseInterceptors(interceptor) {
     chain.push(interceptor.fulfilled, interceptor.rejected);
   });
